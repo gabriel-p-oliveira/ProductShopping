@@ -1,25 +1,60 @@
-import { margin } from "@mui/system";
 import React, { useState, useEffect } from "react";
 
 const App = () => {
+
   const [rows, setRows] = useState([{}]);
-  const [backendData, setbackendData] = useState({});
-  const columnsArray = ["Product Name", "Quantity", "Price", "Earliest DOD", "Promotional Discount", "Total amount"]; // pass columns here dynamically
+  const [calculated, setCalculated] = useState({});
+  // const columnsArray = ["Product Name", "Quantity"];
+  const columnsArray = ["name", "quantity"]; //used for input boxes
+  const columnsName = ["Name", "Quantity", "Price", "Earliest DOD", "Promotional Discount", "Total amount"];
+
+
+  function resolveAfter2Seconds() {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve('resolved');
+      }, 2000);
+    });
+  }
 
   const handleAddRow = () => {
     const item = {};
 
     setRows([...rows, item]);
-    console.log(" handle add row :", rows);
+    // console.log(" handle add row :", rows);
   };
 
   const postResults = () => {
-    console.log(rows); // this object can be passed to the backend to do other computation
+    console.log('all objects :', rows); // this object can be passed to the backend to do other computation
+
   };
+
   const handleRemoveSpecificRow = (idx) => {
     const tempRows = [...rows]; // to avoid  direct state mutation
     tempRows.splice(idx, 1);
-    setRows(tempRows);
+    // setRows(tempRows);
+  };
+
+  const handlecalculatePrice = async (idx) => {
+    // const tempRows = [...rows]; // to avoid  direct state mutation
+    // tempRows.splice(idx, 1);
+    // setRows(tempRows);
+
+    console.log(" handle calculate price called :", idx);
+
+    await fetch(`http://localhost:8080/product/getProductByName?name=${idx.name}&quantity=${idx.quantity}`)
+      .then((data1) => data1.json())
+      .then((js) => {
+        setCalculated(js);
+      })
+      .catch((e) => {
+        console.log(e)
+
+      })
+
+    console.log(await calculated)
+
+
   };
 
   const updateState = (e) => {
@@ -34,23 +69,12 @@ const App = () => {
     // return object to rows` clone
     tempRows[index] = tempObj;
     setRows(tempRows); // update state
+    console.log('rows printed here', rows)
   };
-
-  useEffect(() => {
-    //set background color
-    // document.body.style.backgroundColor = `rgb(230, 255, 255)`;
-    document.body.style.backgroundColor = '#5CDB95';
-
-    document.body.style.color = '#263649';
-  }, []);
-
-  // document.body.style.backgroundColor = `rgb(230, 255, 255)`;
-
 
   return (
     <div>
-      <h1 style={{ color: 'white', padding: 3, textAlign: 'center', margin: 20 }}> Asynchronous JS POC </h1>
-
+      <h1 style={{ color: 'black', padding: 3, textAlign: 'center', margin: 20 }}> Price Calculator </h1>
       <div className="container">
         <div className="row clearfix">
           <div className="col-md-12 column">
@@ -58,7 +82,7 @@ const App = () => {
               <thead>
                 <tr>
                   <th className="text-center"> # </th>
-                  {columnsArray.map((column, index) => (
+                  {columnsName.map((column, index) => (
                     <th className="text-center" key={index}>
                       {column}
                     </th>
@@ -71,19 +95,67 @@ const App = () => {
 
                   <tr key={idx}>
                     <td>{idx + 1}</td>
-                    {columnsArray.map((column, index) => (
-                      <td key={index}>
-                        <input
-                          type="text"
-                          column={column}
-                          value={rows[idx][column]}
-                          index={idx}
-                          className="form-control"
-                          onChange={(e) => updateState(e)}
+                    {
+                      columnsArray.map((column, index) => (
+                        <td key={index}>
+                          <input
+                            type="text"
+                            column={column}
+                            value={rows[idx][column]}
+                            index={idx}
+                            className="form-control"
+                            onChange={(e) => updateState(e)}
+                          />
+                        </td>
+                      ))
+                    }
+                    {
 
-                        />
+                      //TODO: loop over the array to
+                      <td>
+                        <span> {calculated.Price} </span>
                       </td>
-                    ))}
+
+                    }
+                    {
+                      <td>
+                        <span> {calculated.earlyDate} </span>
+                      </td>
+                    }
+                    {
+                      <td>
+                        {/* <span> Promotional discount here.... </span> */}
+                        <span> {calculated.percentage} </span>
+
+
+                      </td>
+                    }
+                    {
+                      <td>
+                        {/* <span>Total amount here... </span> */}
+                        <span> {calculated.normalPrice} </span>
+
+                      </td>
+                    }
+                    {/* {
+                      columnsArray.map((column, index) => (
+                        <td key={index}>
+                          <span> Some text </span>
+                        </td>
+                      ))
+                    } */}
+
+
+                    <td>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        // onClick={() => handlecalculatePrice(idx)}
+                        onClick={() => handlecalculatePrice(item)}
+
+                      >
+                        Calculate
+                      </button>
+                    </td>
 
                     <td>
                       <button
