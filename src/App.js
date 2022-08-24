@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-
+import Gabby from './gabby'
 const App = () => {
 
-  const [rows, setRows] = useState([{}]);
-  const [calculated, setCalculated] = useState({});
+  const [rows, setRows] = useState([{name: '', quantity: 1}]);
+
   // const columnsArray = ["Product Name", "Quantity"];
   const columnsArray = ["name", "quantity"]; //used for input boxes
-  const columnsName = ["Name", "Quantity", "Price", "Earliest DOD", "Promotional Discount", "Total amount"];
+  const columnsName = ["name", "Quantity", "Price", "Earliest DOD", "Promotional Discount", "Total amount"];
 
 
   function resolveAfter2Seconds() {
@@ -20,7 +20,9 @@ const App = () => {
   const handleAddRow = () => {
     const item = {};
 
-    setRows([...rows, item]);
+    setRows([...rows, {name: '', quantity: 0,
+    price: undefined, earlyDate: undefined,
+    percentage: undefined,  normalPrice: undefined }]);
     // console.log(" handle add row :", rows);
   };
 
@@ -35,7 +37,7 @@ const App = () => {
     // setRows(tempRows);
   };
 
-  const handlecalculatePrice = async (idx) => {
+  const handlecalculatePrice = async (idx, index) => {
     // const tempRows = [...rows]; // to avoid  direct state mutation
     // tempRows.splice(idx, 1);
     // setRows(tempRows);
@@ -45,14 +47,17 @@ const App = () => {
     await fetch(`http://localhost:8080/product/getProductByName?name=${idx.name}&quantity=${idx.quantity}`)
       .then((data1) => data1.json())
       .then((js) => {
-        setCalculated(js);
+        setRows([...[js]])
+        // setCalculated(js);
+        // setRows(updatedRows);
+
       })
+      .then((data) => console.log(rows))
       .catch((e) => {
         console.log(e)
 
       })
 
-    console.log(await calculated)
 
 
   };
@@ -68,9 +73,14 @@ const App = () => {
 
     // return object to rows` clone
     tempRows[index] = tempObj;
-    setRows(tempRows); // update state
+    console.log(tempRows)
+    setRows([...tempRows]); // update state
     console.log('rows printed here', rows)
   };
+  
+  // useEffect(() => {
+  //   console.log(rows)
+  // }, [rows])
 
   return (
     <div>
@@ -101,10 +111,10 @@ const App = () => {
                           <input
                             type="text"
                             column={column}
-                            value={rows[idx][column]}
+                            value={item[column]}
                             index={idx}
                             className="form-control"
-                            onChange={(e) => updateState(e)}
+                            onChange={(e) => updateState(e, idx)}
                           />
                         </td>
                       ))
@@ -113,19 +123,19 @@ const App = () => {
 
                       //TODO: loop over the array to
                       <td>
-                        <span> {calculated.Price} </span>
+                        <span> {item?.Price} </span>
                       </td>
 
                     }
                     {
                       <td>
-                        <span> {calculated.earlyDate} </span>
+                        <span> {item?.earlyDate} </span>
                       </td>
                     }
                     {
                       <td>
                         {/* <span> Promotional discount here.... </span> */}
-                        <span> {calculated.percentage} </span>
+                        <span> {item?.percentage} </span>
 
 
                       </td>
@@ -133,7 +143,7 @@ const App = () => {
                     {
                       <td>
                         {/* <span>Total amount here... </span> */}
-                        <span> {calculated.normalPrice} </span>
+                        <span> {item?.normalPrice} </span>
 
                       </td>
                     }
@@ -150,7 +160,7 @@ const App = () => {
                       <button
                         className="btn btn-outline-danger btn-sm"
                         // onClick={() => handlecalculatePrice(idx)}
-                        onClick={() => handlecalculatePrice(item)}
+                        onClick={() => handlecalculatePrice(item, idx)}
 
                       >
                         Calculate
