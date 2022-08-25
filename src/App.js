@@ -1,198 +1,152 @@
-import React, { useState, useEffect } from "react";
-import Gabby from './gabby'
+import React, { useState, useRef } from 'react'
+import Table from 'react-bootstrap/Table';
+import Button from 'react-bootstrap/Button';
+import './App.css'
+import Modal from 'react-bootstrap/Modal';
+
+
+
+
 const App = () => {
 
-  const [rows, setRows] = useState([{name: '', quantity: 1}]);
+  const [row, setRow] = useState([])
+  const name = useRef(null)
+  const qt = useRef(null)
+  let i = 1;
+  const [show, setShow] = useState(false);
 
-  // const columnsArray = ["Product Name", "Quantity"];
-  const columnsArray = ["name", "quantity"]; //used for input boxes
-  const columnsName = ["name", "Quantity", "Price", "Earliest DOD", "Promotional Discount", "Total amount"];
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
 
 
-  function resolveAfter2Seconds() {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve('resolved');
-      }, 2000);
-    });
+  async function insert() {
+    const namevalue = name.current.value
+    const qtValue = qt.current.value
+
+    try {
+      await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
+        .then((data) => data.json())
+        .then((datajson) => {
+          const newdata = row
+          newdata.push(datajson)
+          setRow([...newdata])
+          console.log(datajson)
+
+        })
+        .then(() => {
+          name.current.value = ''
+          qt.current.value = ''
+        })
+    } catch (error) {
+      console.error(error);
+    }
+    // await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
+    //   .then((data) => data.json())
+    //   .then((datajson) => {
+    //     // const newdata = row
+    //     // newdata.push(datajson)
+    //     // setRow([...newdata])
+    //     // console.log(datajson)
+
+    //   })
+    //   .then(() => {
+    //     name.current.value = ''
+    //     qt.current.value = ''
+    //   })
   }
 
-  const handleAddRow = () => {
-    const item = {};
+  async function insertOnEnter(e) {
+    let key = e.keyCode || e.which;
+    if (key == 13) {
+      const namevalue = name.current.value
+      const qtValue = qt.current.value
+      await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
+        .then((data) => data.json())
+        .then((datajson) => {
+          const newdata = row
+          newdata.push(datajson)
+          setRow([...newdata])
+          console.log(datajson)
+        })
+        .then(() => {
+          name.current.value = ''
+          qt.current.value = ''
+          document.getElementById("nameTxt").focus();
 
-    setRows([...rows, {name: '', quantity: 0,
-    price: undefined, earlyDate: undefined,
-    percentage: undefined,  normalPrice: undefined }]);
-    // console.log(" handle add row :", rows);
-  };
+        })
+    }
 
-  const postResults = () => {
-    console.log('all objects :', rows); // this object can be passed to the backend to do other computation
+  }
 
-  };
-
-  const handleRemoveSpecificRow = (idx) => {
-    const tempRows = [...rows]; // to avoid  direct state mutation
-    tempRows.splice(idx, 1);
-    // setRows(tempRows);
-  };
-
-  const handlecalculatePrice = async (idx, index) => {
-    // const tempRows = [...rows]; // to avoid  direct state mutation
-    // tempRows.splice(idx, 1);
-    // setRows(tempRows);
-
-    console.log(" handle calculate price called :", idx);
-
-    await fetch(`http://localhost:8080/product/getProductByName?name=${idx.name}&quantity=${idx.quantity}`)
-      .then((data1) => data1.json())
-      .then((js) => {
-        setRows([...[js]])
-        // setCalculated(js);
-        // setRows(updatedRows);
-
-      })
-      .then((data) => console.log(rows))
-      .catch((e) => {
-        console.log(e)
-
-      })
-
-
-
-  };
-
-  const updateState = (e) => {
-    let prope = e.target.attributes.column.value; // the custom column attribute
-    let index = e.target.attributes.index.value; // index of state array -rows
-    let fieldValue = e.target.value; // value
-
-    const tempRows = [...rows]; // avoid direct state mutation
-    const tempObj = rows[index]; // copy state object at index to a temporary object
-    tempObj[prope] = fieldValue; // modify temporary object
-
-    // return object to rows` clone
-    tempRows[index] = tempObj;
-    console.log(tempRows)
-    setRows([...tempRows]); // update state
-    console.log('rows printed here', rows)
-  };
-  
-  // useEffect(() => {
-  //   console.log(rows)
-  // }, [rows])
+  document.body.style = 'background: black;';
 
   return (
     <div>
-      <h1 style={{ color: 'black', padding: 3, textAlign: 'center', margin: 20 }}> Price Calculator </h1>
-      <div className="container">
-        <div className="row clearfix">
-          <div className="col-md-12 column">
-            <table className="table table-bordered table-hover" id="tab_logic">
-              <thead>
-                <tr>
-                  <th className="text-center"> # </th>
-                  {columnsName.map((column, index) => (
-                    <th className="text-center" key={index}>
-                      {column}
-                    </th>
-                  ))}
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((item, idx) => (
+      <h1 style={{ color: 'white', padding: 3, textAlign: 'center', margin: 20 }}> Product Price Calculator </h1>
+      <Table striped bordered hover variant="dark">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Price per item</th>
+            <th>Promotion detail</th>
+            <th>Discount %</th>
+            <th>Final price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {row?.map((prod, index) => {
+            return <tr key={index}>
+              <td>{i++}</td>
+              <td>{prod?.name}</td>
+              <td>{prod?.quantity}</td>
+              <td>{prod?.Price}</td>
+              <td>{prod?.promotion}</td>
+              <td>{prod?.percentage}</td>
+              <td>{prod?.finalPrice}</td>
+              <td> <Button variant="warning">Edit</Button> </td>
+              <td> <Button variant="danger">Delete</Button> </td>
+            </tr>
+          })}
 
-                  <tr key={idx}>
-                    <td>{idx + 1}</td>
-                    {
-                      columnsArray.map((column, index) => (
-                        <td key={index}>
-                          <input
-                            type="text"
-                            column={column}
-                            value={item[column]}
-                            index={idx}
-                            className="form-control"
-                            onChange={(e) => updateState(e, idx)}
-                          />
-                        </td>
-                      ))
-                    }
-                    {
+          <tr>
+            <td></td>
+            <td><input required id='nameTxt' type={'text'} placeholder='name' ref={name}></input></td>
+            <td><input required type={'text'} placeholder='quantity' ref={qt} onKeyPress={(e) => insertOnEnter(e)}></input></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
 
-                      //TODO: loop over the array to
-                      <td>
-                        <span> {item?.Price} </span>
-                      </td>
-
-                    }
-                    {
-                      <td>
-                        <span> {item?.earlyDate} </span>
-                      </td>
-                    }
-                    {
-                      <td>
-                        {/* <span> Promotional discount here.... </span> */}
-                        <span> {item?.percentage} </span>
-
-
-                      </td>
-                    }
-                    {
-                      <td>
-                        {/* <span>Total amount here... </span> */}
-                        <span> {item?.normalPrice} </span>
-
-                      </td>
-                    }
-                    {/* {
-                      columnsArray.map((column, index) => (
-                        <td key={index}>
-                          <span> Some text </span>
-                        </td>
-                      ))
-                    } */}
+            <td><Button variant="primary" onClick={() => insert()}> Insert</Button></td>
+          </tr>
+        </tbody>
+      </Table>
+      <Button variant="outline-info" onClick={handleShow}>Checkout</Button> {'    '}
+      <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title> Confirm to checkout all items </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>list of products displayed here.....</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleClose}>
+            Go to Payment Page
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Button variant="outline-info">Save as Excel</Button> {'    '}
+      <Button variant="outline-info">Save as PDF</Button>
 
 
-                    <td>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        // onClick={() => handlecalculatePrice(idx)}
-                        onClick={() => handlecalculatePrice(item, idx)}
 
-                      >
-                        Calculate
-                      </button>
-                    </td>
 
-                    <td>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => handleRemoveSpecificRow(idx)}
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button onClick={handleAddRow} className="btn btn-primary">
-              Add Row
-            </button>
-            <button
-              onClick={postResults}
-              className="btn btn-success float-right"
-            >
-              Save Results
-            </button>
-          </div>
-        </div>
-      </div>
+
     </div>
-  );
+  )
 };
 
 export default App;
