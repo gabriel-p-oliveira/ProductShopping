@@ -10,6 +10,7 @@ const PriceCalculator = () => {
   const name = useRef(null)
   const qt = useRef(null)
   const [show, setShow] = useState(false);
+  const [temp, settemp] = useState({});
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -22,10 +23,14 @@ const PriceCalculator = () => {
 
     if (namevalue !== '' && qtValue !== '') {
       try {
-        let temp = { name: namevalue, quantity: qtValue };
+        // tempr = { name: namevalue, quantity: qtValue };
+        settemp({ name: namevalue, quantity: qtValue });
+
         console.log(namevalue)
         const newdata = row
-        setRow([newdata.push(temp)])
+        console.log('temp here:', temp)
+        setRow([newdata.concat(temp)])
+
 
         // const result = await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
         await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=3`)
@@ -46,13 +51,13 @@ const PriceCalculator = () => {
               newdata.push(datajson)
               console.log(datajson)
               {
-                newdata.forEach(((prod, ind) => {
-                  if (prod.name === datajson.name) {
-                    prod.price = datajson.price
-                  }
+                // newdata.forEach(((prod, ind) => {
+                //   if (prod.name === datajson.name) {
+                //     prod.price = datajson.price
+                //   }
 
 
-                }))
+                // }))
 
                 setRow(newdata)
 
@@ -83,7 +88,7 @@ const PriceCalculator = () => {
       if (namevalue !== '' && qtValue !== '') {
         try {
           // await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
-          await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=10`)
+          await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=0`)
 
             .then((data) => data.json())
             .then((datajson) => {
@@ -100,6 +105,8 @@ const PriceCalculator = () => {
                 newdata.push(datajson)
                 setRow([...newdata])
                 console.log(datajson)
+                // name.current.value = ''
+                // qt.current.value = ''
               }
               // setTimeout()
             })
@@ -141,16 +148,17 @@ const PriceCalculator = () => {
               return <tr key={index}>
                 <input type="checkbox" style={{ width: 30, height: 30, margin: 15 }} />
                 <td>{index + 1}</td>
-                <td>{prod?.name}</td>
-                <td>{prod?.quantity}</td>
+                <td>{prod?.name ? prod.name : temp.name}</td>
+                <td>{prod?.quantity ? prod.quantity : 'loading'}</td>
                 <td>{prod?.price ? prod.price : 'loading'}</td>
                 {/*so the same thing as above to promotion, percntage, final price */}
-                <td>{prod?.promotion}</td>
-                <td>{prod?.percentage}</td>
-                <td> DOD</td>
+                <td>{prod?.promotion ? prod.promotion : 'loading'}</td>
+                <td>{prod?.percentage ? prod.percentage : 'loading'}</td>
+                <td> {prod?.earlyDate ? prod.earlyDate : 'loading'}</td>
                 <td>{prod?.finalprice}</td>
                 <td> <Button variant="warning">Edit</Button> </td>
                 <td> <Button variant="danger">Delete</Button> </td>
+
               </tr>
             })}
 
