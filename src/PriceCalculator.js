@@ -4,13 +4,13 @@ import Button from 'react-bootstrap/Button';
 import './App.css'
 import Modal from 'react-bootstrap/Modal';
 
+const realValue = []
 const PriceCalculator = () => {
 
   const [row, setRow] = useState([])
   const name = useRef(null)
   const qt = useRef(null)
   const [show, setShow] = useState(false);
-  const [temp, settemp] = useState({});
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -23,20 +23,18 @@ const PriceCalculator = () => {
 
     if (namevalue !== '' && qtValue !== '') {
       try {
-        // tempr = { name: namevalue, quantity: qtValue };
-        settemp({ name: namevalue, quantity: qtValue });
+        let tempr = { name: namevalue, quantity: qtValue };
 
-        console.log(namevalue)
-        const newdata = row
-        console.log('temp here:', temp)
-        setRow([newdata.concat(temp)])
+        setRow((old) => [...old, tempr])
 
-
+        realValue.push(tempr)
         // const result = await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
-        await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=3`)
+        await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
 
           .then((data) => data.json())
           .then((datajson) => {
+            console.log(datajson)
+
             if (datajson.error) {
               console.log('error!')
               alert("Product not found or product exceed inventory limit!");
@@ -47,28 +45,25 @@ const PriceCalculator = () => {
 
 
             } else {
-              const newdata = row
-              newdata.push(datajson)
-              console.log(datajson)
-              {
-                // newdata.forEach(((prod, ind) => {
-                //   if (prod.name === datajson.name) {
-                //     prod.price = datajson.price
-                //   }
+              return realValue.map(((prod, ind) => {
+                if (prod.name === datajson.name) {
+                  prod.price = datajson.price
+                  prod.promotion = datajson.promotion
+                  prod.percentage = datajson.percentage
+                  prod.finalprice = datajson.finalprice
+                  prod.earlyDate = datajson.earlyDate
+                  prod.normalprice = datajson.normalprice
+                }
+                return prod
+              }))
 
-
-                // }))
-
-                setRow(newdata)
-
-              }
             }
+
           })
           .then((d) => {
-            name.current.value = ''
-            qt.current.value = ''
+
             document.getElementById("nameTxt").focus();
-            return d
+            setRow(d)
           })
 
 
@@ -148,14 +143,14 @@ const PriceCalculator = () => {
               return <tr key={index}>
                 <input type="checkbox" style={{ width: 30, height: 30, margin: 15 }} />
                 <td>{index + 1}</td>
-                <td>{prod?.name ? prod.name : temp.name}</td>
+                <td>{prod?.name}</td>
                 <td>{prod?.quantity ? prod.quantity : 'loading'}</td>
                 <td>{prod?.price ? prod.price : 'loading'}</td>
                 {/*so the same thing as above to promotion, percntage, final price */}
                 <td>{prod?.promotion ? prod.promotion : 'loading'}</td>
                 <td>{prod?.percentage ? prod.percentage : 'loading'}</td>
                 <td> {prod?.earlyDate ? prod.earlyDate : 'loading'}</td>
-                <td>{prod?.finalprice}</td>
+                <td> {(prod?.finalprice || prod?.normalprice) ? (prod.finalprice ? prod.finalprice : prod.normalprice) : 'loading'}</td>
                 <td> <Button variant="warning">Edit</Button> </td>
                 <td> <Button variant="danger">Delete</Button> </td>
 
@@ -193,7 +188,7 @@ const PriceCalculator = () => {
             </Modal.Footer>
           </Modal>
         </div>
-        <button onClick={() => console.log(row)}>abc</button>
+        <button onClick={() => console.log(realValue)}>abc</button>
       </div>
     </>
   )
