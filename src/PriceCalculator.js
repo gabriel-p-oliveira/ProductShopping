@@ -25,11 +25,20 @@ const PriceCalculator = () => {
       try {
         let tempr = { name: namevalue, quantity: qtValue };
 
+        const find = realValue.find((element) => element.name === namevalue);
+        console.log(find);
+        if(find){
+          alert('duplicateds')
+          return
+        }
         setRow((old) => [...old, tempr])
 
+
         realValue.push(tempr)
+        name.current.value = ''
+        qt.current.value = ''
         // const result = await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
-        await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
+        await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=10`)
 
           .then((data) => data.json())
           .then((datajson) => {
@@ -64,6 +73,7 @@ const PriceCalculator = () => {
 
             document.getElementById("nameTxt").focus();
             setRow(d)
+
           })
 
 
@@ -79,42 +89,68 @@ const PriceCalculator = () => {
     if (key == 13) {
       const namevalue = name.current.value
       const qtValue = qt.current.value
-      // const temp = {name: namevalue}
       if (namevalue !== '' && qtValue !== '') {
         try {
-          // await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
-          await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=0`)
-
+          let tempr = { name: namevalue, quantity: qtValue };
+  
+          const find = realValue.find((element) => element.name === namevalue);
+          console.log(find);
+          if(find){
+            alert('duplicateds')
+            return
+          }
+          setRow((old) => [...old, tempr])
+  
+  
+          realValue.push(tempr)
+          name.current.value = ''
+          qt.current.value = ''
+          // const result = await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
+          await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=10`)
+  
             .then((data) => data.json())
             .then((datajson) => {
-              console.log('datajson here::', datajson)
+              console.log(datajson)
+  
               if (datajson.error) {
                 console.log('error!')
                 alert("Product not found or product exceed inventory limit!");
                 name.current.value = ''
                 qt.current.value = ''
                 document.getElementById("nameTxt").focus();
-
+                //search in the row state the element with the same name as the req and replacet it with the result
+  
+  
               } else {
-                const newdata = row
-                newdata.push(datajson)
-                setRow([...newdata])
-                console.log(datajson)
-                // name.current.value = ''
-                // qt.current.value = ''
+                return realValue.map(((prod, ind) => {
+                  if (prod.name === datajson.name) {
+                    prod.price = datajson.price
+                    prod.promotion = datajson.promotion
+                    prod.percentage = datajson.percentage
+                    prod.finalprice = datajson.finalprice
+                    prod.earlyDate = datajson.earlyDate
+                    prod.normalprice = datajson.normalprice
+                  }
+                  return prod
+                }))
+  
               }
-              // setTimeout()
+  
             })
-            .then(() => {
-              name.current.value = ''
-              qt.current.value = ''
+            .then((d) => {
+  
               document.getElementById("nameTxt").focus();
-
+              setRow(d)
+  
             })
+  
+  
         } catch (error) {
           console.error(error);
         }
+  
       }
+
     }
 
   }

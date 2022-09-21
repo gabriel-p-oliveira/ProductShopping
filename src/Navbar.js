@@ -10,7 +10,7 @@ const NavBar = () => {
         <>
             <div>
                 <Navbar bg="primary" variant="dark">
-                    <Container clasasName={'nav'}>
+                    <Container className={'nav'}>
                         <Navbar.Brand href="/"><img src={image} style={{ height: 100, width: 100 }} alt="Logo" /></Navbar.Brand>
                         <Navbar.Brand href="/" style={{ fontSize: 50 }}><b>Grocery Shopping App </b></Navbar.Brand>
                         <Nav className="me-auto">
