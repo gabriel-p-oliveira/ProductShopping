@@ -29,7 +29,7 @@ const PriceCalculator = () => {
 
         realValue.push(tempr)
         // const result = await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
-        await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}`)
+        await fetch(`http://localhost:8080/product/getProductByName?name=${namevalue}&quantity=${qtValue}&slow=5`)
 
           .then((data) => data.json())
           .then((datajson) => {
